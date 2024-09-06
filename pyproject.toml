@@ -1,0 +1,21 @@
+[project]
+name = "mun"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.2",
+    "pytest-cov>=5.0.0",
+]
+
+[tool.pyright]
+exclude = [".venv"]
+venvPath = "."
+venv = ".venv"
+
+[tool.mypy]
+ignore_missing_imports = true
