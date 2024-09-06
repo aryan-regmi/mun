@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Protocol, runtime_checkable
+from dataclasses import dataclass
 
 
 @runtime_checkable
@@ -13,6 +14,11 @@ class Unit(Protocol):
 
     @staticmethod
     def from_base(value: float) -> float: ...
+
+
+@dataclass
+class CompoundMeasurement:
+    pass
 
 
 class Measurement[T]:
@@ -62,6 +68,29 @@ class Measurement[T]:
                 raise TypeError(f"`other` must have a unit of {self.unit.kind}")
         else:
             return Measurement(self.value + other, self.unit)
+
+    def __sub__[U: type](self, other: Measurement[U] | float) -> Measurement[T]:
+        if isinstance(other, Measurement):
+            if self.unit.kind == other.unit.kind:
+                base_value = self.unit.to_base(self.value) - other.unit.to_base(
+                    other.value
+                )
+                converted = self.unit.from_base(base_value)
+                return Measurement(converted, self.unit)
+            else:
+                raise TypeError(f"`other` must have a unit of {self.unit.kind}")
+        else:
+            return Measurement(self.value - other, self.unit)
+
+    def __mul__[U: type, K: type](
+        self, other: CompoundMeasurement | Measurement[U] | float
+    ) -> CompoundMeasurement:
+        pass
+
+
+class Tst[T: str]:
+    def __init__(self, value: float, unit: type):
+        pass
 
 
 # Time Units
