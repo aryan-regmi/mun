@@ -1,143 +1,70 @@
 from __future__ import annotations
-from typing import Protocol, runtime_checkable
 from dataclasses import dataclass
-
-
-@runtime_checkable
-class Unit(Protocol):
-    name: str
-    symbol: str | None
-    kind: str
-
-    @staticmethod
-    def to_base(value: float) -> float: ...
-
-    @staticmethod
-    def from_base(value: float) -> float: ...
+from typing import Any
+from mun.common_units import Meter, Second, UnitId, BaseUnit
 
 
 @dataclass
-class CompoundMeasurement:
-    pass
+class Unit:
+    symbol: str
+    kind: str
+    to_base: Any
+    from_base: Any
 
 
-class Measurement[T]:
-    def __init__(self, value: float, unit: T):
+class Measurement:
+    def __init__(self, value: float, unit: Unit | str):
+        self.value: float = value
+
         if isinstance(unit, Unit):
-            self.value = value
             self.unit = unit
-        else:
-            raise TypeError("`unit` must implement the `Unit` protocol")
+
+        # Match unit to name/aliases in registry
+        if isinstance(unit, str):
+            for id in Registry.units:
+                if id.name == unit:
+                    self.unit = Registry.units[id]
+                    return
+                elif id.aliases and unit in id.aliases:
+                    self.unit = Registry.units[id]
+                    return
 
     def __str__(self) -> str:
-        name = self.unit.name
-        symbol = self.unit.symbol
-        if symbol:
-            return f"{self.value} {symbol}"
+        if self.unit.symbol:
+            return f"{self.value} {self.unit.symbol}"
         else:
-            return f"{self.value} {name}"
+            return f"{self.value} {self.unit.__ne__}"
 
-    def to[U: type](self, unit: U) -> Measurement[U]:
-        if isinstance(unit, Unit):
-            if self.unit.kind == unit.kind:
-                base_value = self.unit.to_base(self.value)
-                converted = unit.from_base(base_value)
-                return Measurement(converted, unit)
-            else:
-                raise TypeError(f"`unit` must be a unit of {self.unit.kind}")
-        else:
-            raise TypeError("`unit` must implement the `Unit` protocol")
-
-    def from_[U](self, value: Measurement[U]):
-        if self.unit.kind == value.unit.kind:
-            base_value = value.unit.to_base(value.value)
-            converted = self.unit.from_base(base_value)
-            self.value = converted
-        else:
-            raise TypeError(f"`value` must have a unit of {self.unit.kind}")
-
-    def __add__[U: type](self, other: Measurement[U] | float) -> Measurement[T]:
+    def __add__(self, other: Measurement | float) -> Measurement:
         if isinstance(other, Measurement):
             if self.unit.kind == other.unit.kind:
                 base_value = self.unit.to_base(self.value) + other.unit.to_base(
                     other.value
                 )
-                converted = self.unit.from_base(base_value)
-                return Measurement(converted, self.unit)
+                return Measurement(self.unit.from_base(base_value), self.unit)
             else:
-                raise TypeError(f"`other` must have a unit of {self.unit.kind}")
+                raise TypeError(f"`other` must be a unit of {self.unit.kind}")
         else:
             return Measurement(self.value + other, self.unit)
 
-    def __sub__[U: type](self, other: Measurement[U] | float) -> Measurement[T]:
-        if isinstance(other, Measurement):
-            if self.unit.kind == other.unit.kind:
-                base_value = self.unit.to_base(self.value) - other.unit.to_base(
-                    other.value
-                )
-                converted = self.unit.from_base(base_value)
-                return Measurement(converted, self.unit)
-            else:
-                raise TypeError(f"`other` must have a unit of {self.unit.kind}")
-        else:
-            return Measurement(self.value - other, self.unit)
 
-    def __mul__[U: type, K: type](
-        self, other: CompoundMeasurement | Measurement[U] | float
-    ) -> CompoundMeasurement:
-        pass
+class Registry:
+    """
+    A registry that manages unit definitions.
+    """
 
+    units: dict[UnitId, Unit] = {
+        Meter.id: Unit("m", "length", Meter.to_base, Meter.from_base),
+        Second.id: Unit("s", "time", Second.to_base, Second.from_base),
+    }
 
-class Tst[T: str]:
-    def __init__(self, value: float, unit: type):
-        pass
+    def add_unit(self, id: UnitId, unit: Unit):
+        Registry.units[id] = unit
 
+    @property
+    def meter(self) -> Unit:
+        return self.units[Meter.id]
 
-# Time Units
-# =================================
-
-
-class Second:
-    name: str = "second"
-    symbol: str | None = "s"
-    kind: str = "time"
-
-    @staticmethod
-    def to_base(value: float) -> float:
-        return value
-
-    @staticmethod
-    def from_base(value: float) -> float:
-        return value
-
-
-# Length Units
-# =================================
-
-
-class Meter:
-    name: str = "meter"
-    symbol: str | None = "m"
-    kind: str = "length"
-
-    @staticmethod
-    def to_base(value: float) -> float:
-        return value
-
-    @staticmethod
-    def from_base(value: float) -> float:
-        return value
-
-
-class Inch:
-    name: str = "inch"
-    symbol: str | None = "in"
-    kind: str = "length"
-
-    @staticmethod
-    def to_base(value: float) -> float:
-        return value * 0.0254
-
-    @staticmethod
-    def from_base(value: float) -> float:
-        return value / 0.0254
+    @property
+    def second(self) -> Unit:
+        return self.units[Second.id]

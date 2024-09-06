@@ -1,27 +1,32 @@
-from mun.units import Inch, Measurement, Meter, Second, Tst
+from mun.units import BaseUnit, Unit, Measurement, Registry, UnitId
+
+units = Registry()
 
 
-def test_convert():
-    len1 = Measurement(1.0, Meter)
+def test_create():
+    len1 = Measurement(1.0, units.meter)
     assert len1.__str__() == "1.0 m"
 
-    len2 = len1.to(Inch)
-    assert len2.unit.symbol == "in"
+    len2 = Measurement(1.0, "m")
+    assert len2.__str__() == "1.0 m"
 
-    len3 = Measurement(1.0, Inch)
-    len3.from_(len1)
+    # Custom units
+    m2 = Unit("m^2", "area", BaseUnit.to_base, BaseUnit.from_base)
+    units.add_unit(UnitId("meters squared", ["m2", "m^2"]), m2)
 
-    tst = Tst["meter"](1, Meter)
-    print(tst)
-    assert 1 == 2
+    area = Measurement(1.0, "m2")
+    assert area.__str__() == "1.0 m^2"
 
 
 def test_add():
-    len1 = Measurement(1.0, Meter)
-    len2 = Measurement(1.0, Meter)
+    len1 = Measurement(1.0, units.meter)
+    len2 = Measurement(1.0, "m")
 
     add = len1 + len2
     assert add.__str__() == "2.0 m"
 
-    sub = len1 - len2
-    assert sub.__str__() == "0.0 m"
+    area1 = Measurement(1.0, "m2")
+    area2 = Measurement(1.0, "m2")
+
+    add = area1 + area2
+    assert add.__str__() == "2.0 m^2"
