@@ -1,4 +1,11 @@
-from mun.units import BaseUnitType, Unit, Measurement, Registry, UnitId
+from mun.units import (
+    BaseUnitType,
+    Measurement,
+    Meter,
+    Registry,
+    Unit,
+    UnitId,
+)
 
 units = Registry()
 
@@ -22,8 +29,8 @@ def test_create():
 
 
 def test_add():
-    len1 = Measurement(1.0, units.meter)
-    len2 = Measurement(1.0, "m")
+    len1 = Measurement[Meter](1.0, units.meter)
+    len2 = Measurement[Meter](1.0, "m")
 
     add = len1 + len2
     assert add.__str__() == "2.0 m"

@@ -25,7 +25,7 @@ class Unit:
     from_base: Any
 
 
-class Measurement:
+class Measurement[T]:
     def __init__(self, value: float, unit: Unit | str):
         self.value: float = value
 
@@ -48,7 +48,7 @@ class Measurement:
         else:
             return f"{self.value} {self.unit.__ne__}"
 
-    def __add__(self, other: Measurement | float) -> Measurement:
+    def __add__(self, other: Measurement | float) -> Measurement[T]:
         if isinstance(other, Measurement):
             if self.unit.kind == other.unit.kind:
                 base_value = self.unit.to_base(self.value) + other.unit.to_base(
@@ -60,7 +60,7 @@ class Measurement:
         else:
             return Measurement(self.value + other, self.unit)
 
-    def __sub__(self, other: Measurement | float) -> Measurement:
+    def __sub__(self, other: Measurement | float) -> Measurement[T]:
         if isinstance(other, Measurement):
             if self.unit.kind == other.unit.kind:
                 base_value = self.unit.to_base(self.value) - other.unit.to_base(
