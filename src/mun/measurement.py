@@ -179,7 +179,15 @@ class Measurement[T]:
         elif isinstance(other, float):
             return self.value == other
         else:
-            return False
+            raise TypeError("`other` must be `Measurement` or `float`")
+
+    def __ne__(self, other: object) -> bool:
+        if isinstance(other, Measurement):
+            return self.unit != other.unit or self.value != other.value
+        elif isinstance(other, float):
+            return self.value != other
+        else:
+            raise TypeError("`other` must be `Measurement` or `float`")
 
     def __gt__(self, other: Measurement | float) -> bool:
         if isinstance(other, Measurement):
