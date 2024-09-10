@@ -1,4 +1,4 @@
-from mun.units import (
+from mun.prelude import (
     BaseUnitType,
     Measurement,
     Meter,

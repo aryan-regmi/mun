@@ -1,256 +1,479 @@
 from __future__ import annotations
-
-from mun.common_units import (
-    BaseUnitType,  # noqa: F401
-    Gram,
-    Hour,
-    Kelvin,
-    Kilogram,
-    KilogramPerMeterCubed,
-    Kilometer,
-    KilometerSquared,
-    KiloUnitType,  # noqa: F401
-    Meter,
-    MeterCubed,
-    MeterPerSecond,
-    MeterPerSecondSquared,
-    MeterSquared,
-    MeterSquaredPerSecond,
-    MiliUnitType,  # noqa: F401
-    Minute,
-    Newton,
-    Pascal,
-    Second,
-    Unit,
-    UnitInfo,
-    UnitOps,
-    UnitType,  # noqa: F401
-    registry,  # noqa: F401
-)
+from enum import Enum
+from typing import Callable
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import override
 
 
-# TODO: Add `to` and `from_` methods
-#
-# TODO: Add `reduce` and `expand` methods
-class Measurement[T]:
+class UnitOps(Enum):
+    """Represents an operation between units to create compound units."""
+
+    Mul = 0
+    Div = 1
+
+
+@dataclass
+class Unit:
     """
-    Represents a measurement (a value and its unit).
+    Represents a unit of measure.
 
-    The unit type can be explicity specifed, but it is only for bookeeping: the
-    class doesn't reference it in any way.
-
-    # Note
-    Units created by multiplying (`__mul__`) or dividing (`__div__`) units together will not have valid `to_base` and `from_base` methods.
-        - To implement that functionality, create a custom unit.
+    symbol          - They symbol to display when printing the unit.
+    kind            - The kind of measurement (e.g. "length", "time", "mass", etc.)
+    to_base         - A function that takes a `float` value and converts it into the
+                      base unit.
+                      `to_base(value: float) -> float`
+    from_base       - A function that takes a `float` value in the base unit and
+                      converts it into this unit.
+                      `from_base(value: float) -> float`
+    components      - The list of `Unit`s that this unit is composed of. Only valid for
+                      compound units.
+                      This is necessary if you wish to simplify or expand `Measurement`s
+                      of compound units.
+                      (Defaults to `None`)
+    ops             - The list of operations (`UnitOps`) that corresponds to the
+                      `components` list.
+                      This defines the relationships between the component units;
+                      its length must be 1 less than the length of `components`.
+                      (Defaults to `None`)
     """
 
-    def from_[U](self, measurement: Measurement[U]) -> Measurement[T]:
-        """
-        Creates a new measurement from the given one.
+    symbol: str
+    kind: str
+    to_base: Callable | None
+    from_base: Callable | None
+    components: list[str] | None = None
+    ops: list[UnitOps] | None = None
 
-        # Note
-        This does not check if `U` can be converted into `T`, and simply assigns its
-        value to the returned measurement.
-        """
-        return Measurement(measurement.value, self.unit)
 
-    # TODO: incorporate `from_` into `__init__`
-    def __init__(self, value: float, unit: Unit | str):
-        """
-        Creates a new measurement with the given value and unit.
+@dataclass
+class UnitInfo:
+    """Describes a unit's name and aliases."""
 
-        # Inputs:
-            value   - The actual measurement value.
-            unit    - A `Unit`, or a string representing a unit registered in the `Registry`.
-        """
+    name: str
+    aliases: list[str] | None = None
 
-        self.value: float = value
+    def __hash__(self) -> int:
+        return hash(self.name)
 
-        if isinstance(unit, Unit):
-            self.unit = unit
 
-        # Match unit to name/aliases in registry
-        if isinstance(unit, str):
-            for id in Registry.units:
-                if id.name == unit:
-                    self.unit = Registry.units[id]
-                    return
-                elif id.aliases and unit in id.aliases:
-                    self.unit = Registry.units[id]
-                    return
+# Generic Units
+# ================================
 
-    def __str__(self) -> str:
-        if self.unit.symbol:
-            return f"{self.value} {self.unit.symbol}"
-        else:
-            return f"{self.value} {self.unit.__ne__}"
 
-    def __add__(self, other: Measurement | float) -> Measurement[T]:
-        if isinstance(other, Measurement):
-            if self.unit.kind == other.unit.kind:
-                if (
-                    self.unit.to_base is not None
-                    and other.unit.to_base is not None
-                    and self.unit.from_base
-                ):
-                    base_value = self.unit.to_base(self.value) + other.unit.to_base(  # type: ignore
-                        other.value
-                    )
-                    return Measurement(self.unit.from_base(base_value), self.unit)
-                else:
-                    raise TypeError(
-                        "`self` and `other` must have units with `to_base` and `from_base` methods defined"
-                    )
-            else:
-                raise TypeError(f"`other` must be a unit of {self.unit.kind}")
-        else:
-            return Measurement(self.value + other, self.unit)
+class UnitType(ABC):
+    @staticmethod
+    @abstractmethod
+    def to_base(value: float) -> float:
+        return value
 
-    def __sub__(self, other: Measurement | float) -> Measurement[T]:
-        if isinstance(other, Measurement):
-            if self.unit.kind == other.unit.kind:
-                if (
-                    self.unit.to_base is not None
-                    and other.unit.to_base is not None
-                    and self.unit.from_base
-                ):
-                    base_value = self.unit.to_base(self.value) - other.unit.to_base(  # type: ignore
-                        other.value
-                    )
-                    return Measurement(self.unit.from_base(base_value), self.unit)
-                else:
-                    raise TypeError(
-                        "`self` and `other` must have units with `to_base` and `from_base` methods defined"
-                    )
-            else:
-                raise TypeError(f"`other` must be a unit of {self.unit.kind}")
-        else:
-            return Measurement(self.value - other, self.unit)
+    @staticmethod
+    @abstractmethod
+    def from_base(value: float) -> float:
+        return value
 
-    def _get_unit(self, symbol: str) -> Unit | None:  # type: ignore
-        """
-        Gets a unit matching the symbol from the registry if one exists.
-        """
-        for id in Registry.units:
-            if id.name == symbol:
-                unit = Registry.units[id]
-                return unit
-            elif id.aliases and symbol in id.aliases:
-                unit = Registry.units[id]
-                return unit
-            else:
-                return None
 
-    def __mul__(self, other: Measurement | float) -> Measurement:
-        if isinstance(other, Measurement):
-            symbol = self.unit.symbol + "*" + other.unit.symbol
-            kind = self.unit.kind + "*" + other.unit.kind
-            unit: Unit | None = self._get_unit(symbol)
+class BaseUnitType(UnitType):
+    @override
+    @staticmethod
+    def to_base(value: float) -> float:
+        return value
 
-            # Create new unit if one doesn't exist
-            if unit is None:
-                unit = Unit(
-                    symbol=symbol,
-                    kind=kind,
-                    to_base=None,
-                    from_base=None,
-                    components=[self.unit, other.unit],
-                    ops=[UnitOps.Mul],
-                )
+    @override
+    @staticmethod
+    def from_base(value: float) -> float:
+        return value
 
-            return Measurement(self.value * other.value, unit)
-        else:
-            return Measurement(self.value * other, self.unit)
 
-    def __div__(self, other: Measurement | float) -> Measurement:
-        if isinstance(other, Measurement):
-            symbol = self.unit.symbol + "/" + other.unit.symbol
-            kind = self.unit.kind + "/" + other.unit.kind
-            unit: Unit | None = self._get_unit(symbol)
+class KiloUnitType(UnitType):
+    @override
+    @staticmethod
+    def to_base(value: float) -> float:
+        return value * 1000
 
-            # Create new unit if one doesn't exist
-            if unit is None:
-                unit = Unit(
-                    symbol=symbol,
-                    kind=kind,
-                    to_base=None,
-                    from_base=None,
-                    components=[self.unit, other.unit],
-                    ops=[UnitOps.Div],
-                )
+    @override
+    @staticmethod
+    def from_base(value: float) -> float:
+        return value / 1000
 
-            return Measurement(self.value / other.value, unit)
-        else:
-            return Measurement(self.value / other, self.unit)
 
-    def __pow__(self, exp: int) -> Measurement:
-        symbol = f"{self.unit.symbol}^{exp}"
-        unit: Unit | None = self._get_unit(symbol)
+class MiliUnitType(UnitType):
+    @override
+    @staticmethod
+    def to_base(value: float) -> float:
+        return value / 1000
 
-        # Create new unit if one doesn't exist
-        if unit is None:
-            unit = Unit(
-                symbol=symbol,
-                kind="",
-                to_base=None,
-                from_base=None,
-                components=[self.unit for _ in range(exp)],
-                ops=[UnitOps.Div],
-            )
+    @override
+    @staticmethod
+    def from_base(value: float) -> float:
+        return value * 1000
 
-        return Measurement(self.value**exp, unit)
 
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, Measurement):
-            return self.unit == other.unit and self.value == other.value
-        elif isinstance(other, float):
-            return self.value == other
-        else:
-            return False
+# Length Units
+# ================================
 
-    def __gt__(self, other: Measurement | float) -> bool:
-        if isinstance(other, Measurement):
-            return self.unit == other.unit and self.value > other.value
-        else:
-            return self.value > other
 
-    def __ge__(self, other: Measurement | float) -> bool:
-        if isinstance(other, Measurement):
-            return self.unit == other.unit and self.value >= other.value
-        else:
-            return self.value >= other
+class Meter(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter",
+        [
+            "m",
+            "meters",
+            "metre",
+            "metres",
+            "Meter",
+            "Meters",
+            "Metre",
+            "Metres",
+        ],
+    )
 
-    def __lt__(self, other: Measurement | float) -> bool:
-        if isinstance(other, Measurement):
-            return self.unit == other.unit and self.value < other.value
-        else:
-            return self.value < other
 
-    def __le__(self, other: Measurement | float) -> bool:
-        if isinstance(other, Measurement):
-            return self.unit == other.unit and self.value <= other.value
-        else:
-            return self.value <= other
+class Kilometer(KiloUnitType):
+    id: UnitInfo = UnitInfo(
+        "kilometer",
+        [
+            "kg",
+            "kilometers",
+            "Kilometer",
+            "Kilometers",
+            "kilometres",
+            "Kilometre",
+            "Kilometres",
+        ],
+    )
 
-    __ladd__ = __add__
-    __radd__ = __add__
 
-    __lsub__ = __sub__
-    __rsub__ = __sub__
+# Time Units
+# ================================
 
-    __lmul__ = __mul__
-    __rmul__ = __mul__
 
-    __ldiv__ = __div__
-    __rdiv__ = __div__
-    __floordiv__ = __div__
-    __truediv__ = __div__
+class Second(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "second",
+        [
+            "s",
+            "sec",
+            "secs",
+            "seconds",
+            "Sec",
+            "Secs",
+            "Second",
+            "Seconds",
+        ],
+    )
 
-    def is_kind(self, kind: str) -> bool:
-        """
-        Checks if the measurement is the specifed `kind`
-        """
-        return self.unit.kind == kind
+
+class Minute(UnitType):
+    id: UnitInfo = UnitInfo(
+        "minute",
+        [
+            "min",
+            "mins",
+            "minutes",
+            "Min",
+            "Mins",
+            "Minutes",
+        ],
+    )
+
+    @override
+    @staticmethod
+    def to_base(value: float) -> float:
+        return value * 60
+
+    @override
+    @staticmethod
+    def from_base(value: float) -> float:
+        return value / 60
+
+
+class Hour(UnitType):
+    id: UnitInfo = UnitInfo(
+        "hour",
+        [
+            "h",
+            "hr",
+            "hrs",
+            "hours",
+            "Hour",
+            "Hours",
+        ],
+    )
+
+    @override
+    @staticmethod
+    def to_base(value: float) -> float:
+        return value * 3600
+
+    @override
+    @staticmethod
+    def from_base(value: float) -> float:
+        return value / 3600
+
+
+# Mass Units
+# ================================
+
+
+class Gram(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "gram",
+        [
+            "g",
+            "grams",
+            "Gram",
+            "Grams",
+        ],
+    )
+
+
+class Kilogram(KiloUnitType):
+    id: UnitInfo = UnitInfo(
+        "kilogram",
+        [
+            "kg",
+            "kilograms",
+            "Kilogram",
+            "Kilograms",
+        ],
+    )
+
+
+# Area Units
+# ================================
+
+
+class MeterSquared(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter squared",
+        [
+            "m*m",
+            "m^2",
+            "m**2",
+            "meters squared",
+            "metre squared",
+            "metres squared",
+            "Meters Squared",
+            "Metre Squared",
+            "Metres Squared",
+        ],
+    )
+
+    components: list[str] = ["m", "m"]
+    ops: list[UnitOps] = [UnitOps.Mul]
+
+
+class KilometerSquared(KiloUnitType):
+    id: UnitInfo = UnitInfo(
+        "kilometer squared",
+        [
+            "km*km",
+            "km^2",
+            "km**2",
+            "kilometers squared",
+            "kilometre squared",
+            "kilometres squared",
+            "Kilometers Squared",
+            "Kilometre Squared",
+            "Kilometres Squared",
+        ],
+    )
+
+    components: list[str] = ["km", "km"]
+    ops: list[UnitOps] = [UnitOps.Mul]
+
+
+# Volume Units
+# ================================
+
+
+class MeterCubed(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter cubed",
+        [
+            "m*m*m",
+            "m^3",
+            "m**3",
+            "meters cubed",
+            "metre cubed",
+            "metres cubed",
+            "Meters Cubed",
+            "Metre Cubed",
+            "Metres Cubed",
+        ],
+    )
+
+    components: list[str] = [
+        "m",
+        "m",
+        "m",
+    ]
+    ops: list[UnitOps] = [UnitOps.Mul, UnitOps.Mul]
+
+
+# Velocity Units
+# ================================
+
+
+class MeterPerSecond(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter per second",
+        [
+            "m/s",
+            "mps",
+            "metre per second",
+            "metres per second",
+            "meters per second",
+            "Meter Per Second",
+            "Metre Per Second",
+            "Metres Per Second",
+            "Meters Per Second",
+        ],
+    )
+
+    components: list[str] = [
+        "m",
+        "s",
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]
+
+
+# Acceleration Units
+# ================================
+
+
+class MeterPerSecondSquared(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter per second squared",
+        [
+            "m/s^2",
+            "m/s**2",
+            "m/s/s",
+            "metre per second squared",
+            "metres per second squared",
+            "meters per second squared",
+            "Meter Per Second Squared",
+            "Metre Per Second Squared",
+            "Metres Per Second Squared",
+            "Meters Per Second Squared",
+        ],
+    )
+
+    components: list[str] = [
+        "m",
+        "s",
+        "s",
+    ]
+    ops: list[UnitOps] = [UnitOps.Div, UnitOps.Div]
+
+
+# Force Units
+# ================================
+
+
+class Newton(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "newton",
+        [
+            "N",
+            "Newton",
+            "newtons",
+            "Newtons",
+            "kg*m/s^2",
+            "kg*m/s/s",
+            "kg*m/s**2",
+        ],
+    )
+
+    components: list[str] = [
+        "kg",
+        "m/s^2",
+    ]
+    ops: list[UnitOps] = [UnitOps.Mul]
+
+
+# Pressure Units
+# ================================
+class Pascal(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "pascal",
+        [
+            "Pa",
+            "Pascal",
+            "pascals",
+            "Pascals",
+            "N/m^2",
+            "N/m/m",
+            "N/m**2",
+        ],
+    )
+
+    components: list[str] = [
+        "N",
+        "m^2",
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]
+
+
+# Temperature Units
+# ================================
+class Kelvin(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "kelvin",
+        [
+            "K",
+            "Kelvin",
+            "kelvins",
+            "Kelvins",
+        ],
+    )
+
+
+# Density Units
+# ================================
+class KilogramPerMeterCubed(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "kilogram per meter cubed",
+        [
+            "kg/m^3",
+            "kg/m**3",
+            "kg/m/m/m",
+            "kilograms per meter cubed",
+            "Kilogram Per Meter Cubed",
+            "Kilograms Per Meter Cubed",
+        ],
+    )
+
+    components: list[str] = [
+        "kg",
+        "m^3",
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]
+
+
+# Viscosity Units
+# ================================
+class MeterSquaredPerSecond(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter squared per second",
+        [
+            "m^2/s",
+            "m**2/s",
+            "meters squared per second",
+            "metre squared per second",
+            "metres squared per second",
+            "Meters Squared Per Second",
+            "Metre Squared Per Second",
+            "Metres Squared Per Second",
+        ],
+    )
+
+    components: list[str] = [
+        "m^2",
+        "s",
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]
 
 
 class Registry:
@@ -456,3 +679,6 @@ class Registry:
     def meter_squared_per_second(self) -> Unit:
         """Represents a `m^2/s`."""
         return self.units[MeterSquaredPerSecond.id]
+
+
+ureg = Registry()
