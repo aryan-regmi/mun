@@ -133,7 +133,7 @@ class Kilometer(KiloUnitType):
     id: UnitInfo = UnitInfo(
         "kilometer",
         [
-            "kg",
+            "km",
             "kilometers",
             "Kilometer",
             "Kilometers",
