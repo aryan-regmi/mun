@@ -139,6 +139,8 @@ class Measurement[T]:
         if isinstance(other, Measurement):
             symbol = self.unit.symbol + "/" + other.unit.symbol
             kind = self.unit.kind + "/" + other.unit.kind
+            print(kind)
+            print(self.unit.kind, other.unit.kind)
             unit: Unit | None = self._get_unit(symbol)
 
             # Create new unit if one doesn't exist
