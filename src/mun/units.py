@@ -1,78 +1,36 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from enum import Enum
-from typing import Callable
+
 from mun.common_units import (
+    BaseUnitType,  # noqa: F401
+    Gram,
+    Hour,
     Kelvin,
+    Kilogram,
     KilogramPerMeterCubed,
     Kilometer,
     KilometerSquared,
+    KiloUnitType,  # noqa: F401
+    Meter,
     MeterCubed,
     MeterPerSecond,
     MeterPerSecondSquared,
     MeterSquared,
     MeterSquaredPerSecond,
+    MiliUnitType,  # noqa: F401
+    Minute,
     Newton,
     Pascal,
-    UnitType,  # noqa: F401
-    BaseUnitType,
-    Gram,
-    Hour,
-    KiloUnitType,
-    Kilogram,
-    Meter,
-    MiliUnitType,
-    Minute,
     Second,
+    Unit,
     UnitInfo,
+    UnitOps,
+    UnitType,  # noqa: F401
 )
-
-
-class UnitOps(Enum):
-    """Represents an operation between units to create compound units."""
-
-    Mul = 0
-    Div = 1
-
-
-@dataclass
-class Unit:
-    """
-    Represents a unit of measure.
-
-    symbol          - They symbol to display when printing the unit.
-    kind            - The kind of measurement (e.g. "length", "time", "mass", etc.)
-    to_base         - A function that takes a `float` value and converts it into the
-                      base unit.
-                      `to_base(value: float) -> float`
-    from_base       - A function that takes a `float` value in the base unit and
-                      converts it into this unit.
-                      `from_base(value: float) -> float`
-    components      - The list of `Unit`s that this unit is composed of. Only valid for
-                      compound units.
-                      This is necessary if you wish to simplify or expand `Measurement`s
-                      of compound units.
-                      (Defaults to `None`)
-    ops             - The list of operations (`UnitOps`) that corresponds to the
-                      `components` list.
-                      This defines the relationships between the component units;
-                      its length must be 1 less than the length of `components`.
-                      (Defaults to `None`)
-    """
-
-    symbol: str
-    kind: str
-    to_base: Callable | None
-    from_base: Callable | None
-    components: list[Unit] | None = None
-    ops: list[UnitOps] | None = None
 
 
 # TODO: Add `to` and `from_` methods
 #
 # TODO: Add `reduce` and `expand` methods
-#
-# TODO: Add `__pow__` method
 class Measurement[T]:
     """
     Represents a measurement (a value and its unit).
@@ -95,6 +53,7 @@ class Measurement[T]:
         """
         return Measurement(measurement.value, self.unit)
 
+    # TODO: incorporate `from_` into `__init__`
     def __init__(self, value: float, unit: Unit | str):
         """
         Creates a new measurement with the given value and unit.

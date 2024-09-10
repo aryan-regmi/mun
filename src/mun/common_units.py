@@ -1,9 +1,51 @@
+from __future__ import annotations
+from enum import Enum
+from typing import Callable
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import override
 
 import mun
-from mun.units import Unit, UnitOps  # type: ignore
+
+
+class UnitOps(Enum):
+    """Represents an operation between units to create compound units."""
+
+    Mul = 0
+    Div = 1
+
+
+@dataclass
+class Unit:
+    """
+    Represents a unit of measure.
+
+    symbol          - They symbol to display when printing the unit.
+    kind            - The kind of measurement (e.g. "length", "time", "mass", etc.)
+    to_base         - A function that takes a `float` value and converts it into the
+                      base unit.
+                      `to_base(value: float) -> float`
+    from_base       - A function that takes a `float` value in the base unit and
+                      converts it into this unit.
+                      `from_base(value: float) -> float`
+    components      - The list of `Unit`s that this unit is composed of. Only valid for
+                      compound units.
+                      This is necessary if you wish to simplify or expand `Measurement`s
+                      of compound units.
+                      (Defaults to `None`)
+    ops             - The list of operations (`UnitOps`) that corresponds to the
+                      `components` list.
+                      This defines the relationships between the component units;
+                      its length must be 1 less than the length of `components`.
+                      (Defaults to `None`)
+    """
+
+    symbol: str
+    kind: str
+    to_base: Callable | None
+    from_base: Callable | None
+    components: list[Unit] | None = None
+    ops: list[UnitOps] | None = None
 
 
 @dataclass
