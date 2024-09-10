@@ -228,6 +228,38 @@ class Measurement[T]:
 
         return Measurement(self.value**exp, unit)
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Measurement):
+            return self.unit == other.unit and self.value == other.value
+        elif isinstance(other, float):
+            return self.value == other
+        else:
+            return False
+
+    def __gt__(self, other: Measurement | float) -> bool:
+        if isinstance(other, Measurement):
+            return self.unit == other.unit and self.value > other.value
+        else:
+            return self.value > other
+
+    def __ge__(self, other: Measurement | float) -> bool:
+        if isinstance(other, Measurement):
+            return self.unit == other.unit and self.value >= other.value
+        else:
+            return self.value >= other
+
+    def __lt__(self, other: Measurement | float) -> bool:
+        if isinstance(other, Measurement):
+            return self.unit == other.unit and self.value < other.value
+        else:
+            return self.value < other
+
+    def __le__(self, other: Measurement | float) -> bool:
+        if isinstance(other, Measurement):
+            return self.unit == other.unit and self.value <= other.value
+        else:
+            return self.value <= other
+
     __ladd__ = __add__
     __radd__ = __add__
 
