@@ -207,6 +207,35 @@ class Measurement[T]:
         else:
             return Measurement(self.value / other, self.unit)
 
+    def __pow__(self, exp: int) -> Measurement:
+        symbol = f"{self.unit.symbol}^{exp}"
+        unit: Unit | None = self._get_unit(symbol)
+
+        # Create new unit if one doesn't exist
+        if unit is None:
+            unit = Unit(
+                symbol=symbol,
+                kind="",
+                to_base=None,
+                from_base=None,
+                components=[self.unit for _ in range(exp)],
+                ops=[UnitOps.Div],
+            )
+
+        return Measurement(self.value**exp, unit)
+
+    def _get_unit(self, symbol: str) -> Unit | None:
+        """
+        Gets a unit matching the symbol from the registry if one exists.
+        """
+        for id in Registry.units:
+            if id.name == symbol:
+                unit = Registry.units[id]
+                return unit
+            elif id.aliases and symbol in id.aliases:
+                unit = Registry.units[id]
+                return unit
+
     __ladd__ = __add__
     __radd__ = __add__
 
