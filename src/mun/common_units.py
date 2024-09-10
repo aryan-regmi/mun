@@ -388,3 +388,49 @@ class Kelvin(BaseUnitType):
             "Kelvins",
         ],
     )
+
+
+# Density Units
+# ================================
+class KilogramPerMeterCubed(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "kilogram per meter cubed",
+        [
+            "kg/m^3",
+            "kg/m**3",
+            "kg/m/m/m",
+            "kilograms per meter cubed",
+            "Kilogram Per Meter Cubed",
+            "Kilograms Per Meter Cubed",
+        ],
+    )
+
+    components: list[Unit] = [
+        mun.registry.kilogram,
+        mun.registry.meter_cubed,
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]
+
+
+# Viscosity Units
+# ================================
+class MeterSquaredPerSecond(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter squared per second",
+        [
+            "m^2/s",
+            "m**2/s",
+            "meters squared per second",
+            "metre squared per second",
+            "metres squared per second",
+            "Meters Squared Per Second",
+            "Metre Squared Per Second",
+            "Metres Squared Per Second",
+        ],
+    )
+
+    components: list[Unit] = [
+        mun.registry.meter_squared,
+        mun.registry.second,
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]

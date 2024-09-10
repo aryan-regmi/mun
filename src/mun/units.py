@@ -4,12 +4,14 @@ from enum import Enum
 from typing import Any, Callable
 from mun.common_units import (
     Kelvin,
+    KilogramPerMeterCubed,
     Kilometer,
     KilometerSquared,
     MeterCubed,
     MeterPerSecond,
     MeterPerSecondSquared,
     MeterSquared,
+    MeterSquaredPerSecond,
     Newton,
     Pascal,
     UnitType,
@@ -296,6 +298,20 @@ class Registry:
         Pascal.id: Unit("Pa", "pressure", Pascal.to_base, Pascal.from_base),
         # Temperature
         Kelvin.id: Unit("K", "temperature", Kelvin.to_base, Kelvin.from_base),
+        # Density
+        KilogramPerMeterCubed.id: Unit(
+            "kg/m^3",
+            "density",
+            KilogramPerMeterCubed.to_base,
+            KilogramPerMeterCubed.from_base,
+        ),
+        # Viscosity
+        MeterSquaredPerSecond.id: Unit(
+            "m^2/s",
+            "viscosity",
+            MeterSquaredPerSecond.to_base,
+            MeterSquaredPerSecond.from_base,
+        ),
     }
 
     def add_unit(self, id: UnitInfo, unit: Unit):
@@ -412,12 +428,28 @@ class Registry:
 
     # Pressure
     # ================================================================
+    @property
     def pascal(self) -> Unit:
         """Represents a Pascal."""
         return self.units[Pascal.id]
 
     # Temperature
     # ================================================================
+    @property
     def kelvin(self) -> Unit:
         """Represents a Kelvin."""
         return self.units[Kelvin.id]
+
+    # Density
+    # ================================================================
+    @property
+    def kilogram_per_meter_cubed(self) -> Unit:
+        """Represents a `kg/m^3`."""
+        return self.units[KilogramPerMeterCubed.id]
+
+    # Viscosity
+    # ================================================================
+    @property
+    def meter_squared_per_second(self) -> Unit:
+        """Represents a `m^2/s`."""
+        return self.units[MeterSquaredPerSecond.id]
