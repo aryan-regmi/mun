@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Callable
 from mun.common_units import (
     Kelvin,
     KilogramPerMeterCubed,
@@ -14,7 +14,7 @@ from mun.common_units import (
     MeterSquaredPerSecond,
     Newton,
     Pascal,
-    UnitType,
+    UnitType,  # noqa: F401
     BaseUnitType,
     Gram,
     Hour,
@@ -119,11 +119,11 @@ class Measurement[T]:
         if isinstance(other, Measurement):
             if self.unit.kind == other.unit.kind:
                 if (
-                    self.unit.to_base != None
-                    and other.unit.to_base != None
+                    self.unit.to_base is not None
+                    and other.unit.to_base is not None
                     and self.unit.from_base
                 ):
-                    base_value = self.unit.to_base(self.value) + other.unit.to_base(
+                    base_value = self.unit.to_base(self.value) + other.unit.to_base(  # type: ignore
                         other.value
                     )
                     return Measurement(self.unit.from_base(base_value), self.unit)
@@ -140,11 +140,11 @@ class Measurement[T]:
         if isinstance(other, Measurement):
             if self.unit.kind == other.unit.kind:
                 if (
-                    self.unit.to_base != None
-                    and other.unit.to_base != None
+                    self.unit.to_base is not None
+                    and other.unit.to_base is not None
                     and self.unit.from_base
                 ):
-                    base_value = self.unit.to_base(self.value) - other.unit.to_base(
+                    base_value = self.unit.to_base(self.value) - other.unit.to_base(  # type: ignore
                         other.value
                     )
                     return Measurement(self.unit.from_base(base_value), self.unit)
@@ -157,7 +157,7 @@ class Measurement[T]:
         else:
             return Measurement(self.value - other, self.unit)
 
-    def _get_unit(self, symbol: str) -> Unit | None:
+    def _get_unit(self, symbol: str) -> Unit | None:  # type: ignore
         """
         Gets a unit matching the symbol from the registry if one exists.
         """
@@ -168,6 +168,8 @@ class Measurement[T]:
             elif id.aliases and symbol in id.aliases:
                 unit = Registry.units[id]
                 return unit
+            else:
+                return None
 
     def __mul__(self, other: Measurement | float) -> Measurement:
         if isinstance(other, Measurement):
