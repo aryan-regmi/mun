@@ -85,6 +85,16 @@ class Measurement[T]:
         - To implement that functionality, create a custom unit.
     """
 
+    def from_[U](self, measurement: Measurement[U]) -> Measurement[T]:
+        """
+        Creates a new measurement from the given one.
+
+        # Note
+        This does not check if `U` can be converted into `T`, and simply assigns its
+        value to the returned measurement.
+        """
+        return Measurement(measurement.value, self.unit)
+
     def __init__(self, value: float, unit: Unit | str):
         """
         Creates a new measurement with the given value and unit.
