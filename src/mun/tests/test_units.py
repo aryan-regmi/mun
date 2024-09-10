@@ -4,7 +4,7 @@ from mun.units import (
     Meter,
     Registry,
     Unit,
-    UnitId,
+    UnitInfo,
 )
 
 units = Registry()
@@ -19,7 +19,7 @@ def test_create():
 
     # Custom units
     m2 = Unit("m^2", "area", BaseUnitType.to_base, BaseUnitType.from_base)
-    units.add_unit(UnitId("meters squared", ["m2", "m^2"]), m2)
+    units.add_unit(UnitInfo("meters squared", ["m2", "m^2"]), m2)
 
     area = Measurement(1.0, "m2")
     assert area.__str__() == "1.0 m^2"

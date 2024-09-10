@@ -19,3 +19,5 @@ venv = ".venv"
 
 [tool.mypy]
 ignore_missing_imports = true
+enable-incomplete-feature="NewGenericSyntax"
+
