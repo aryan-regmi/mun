@@ -147,20 +147,23 @@ class Measurement[T]:
         else:
             return Measurement(self.value - other, self.unit)
 
+    def _get_unit(self, symbol: str) -> Unit | None:
+        """
+        Gets a unit matching the symbol from the registry if one exists.
+        """
+        for id in Registry.units:
+            if id.name == symbol:
+                unit = Registry.units[id]
+                return unit
+            elif id.aliases and symbol in id.aliases:
+                unit = Registry.units[id]
+                return unit
+
     def __mul__(self, other: Measurement | float) -> Measurement:
         if isinstance(other, Measurement):
             symbol = self.unit.symbol + "*" + other.unit.symbol
             kind = self.unit.kind + "*" + other.unit.kind
-            unit: Unit | None = None
-
-            # Reuse existing unit if available
-            for id in Registry.units:
-                if id.name == symbol:
-                    unit = Registry.units[id]
-                    break
-                elif id.aliases and symbol in id.aliases:
-                    unit = Registry.units[id]
-                    break
+            unit: Unit | None = self._get_unit(symbol)
 
             # Create new unit if one doesn't exist
             if unit is None:
@@ -181,16 +184,7 @@ class Measurement[T]:
         if isinstance(other, Measurement):
             symbol = self.unit.symbol + "/" + other.unit.symbol
             kind = self.unit.kind + "/" + other.unit.kind
-            unit: Unit | None = None
-
-            # Reuse existing unit if available
-            for id in Registry.units:
-                if id.name == symbol:
-                    unit = Registry.units[id]
-                    break
-                elif id.aliases and symbol in id.aliases:
-                    unit = Registry.units[id]
-                    break
+            unit: Unit | None = self._get_unit(symbol)
 
             # Create new unit if one doesn't exist
             if unit is None:
@@ -223,18 +217,6 @@ class Measurement[T]:
             )
 
         return Measurement(self.value**exp, unit)
-
-    def _get_unit(self, symbol: str) -> Unit | None:
-        """
-        Gets a unit matching the symbol from the registry if one exists.
-        """
-        for id in Registry.units:
-            if id.name == symbol:
-                unit = Registry.units[id]
-                return unit
-            elif id.aliases and symbol in id.aliases:
-                unit = Registry.units[id]
-                return unit
 
     __ladd__ = __add__
     __radd__ = __add__
