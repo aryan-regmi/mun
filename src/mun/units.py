@@ -3,10 +3,15 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable
 from mun.common_units import (
+    Kelvin,
     Kilometer,
     KilometerSquared,
     MeterCubed,
+    MeterPerSecond,
+    MeterPerSecondSquared,
     MeterSquared,
+    Newton,
+    Pascal,
     UnitType,
     BaseUnitType,
     Gram,
@@ -273,7 +278,24 @@ class Registry:
             "km^2", "area", KilometerSquared.to_base, KilometerSquared.from_base
         ),
         # Volume
-        MeterCubed.id: Unit("m^3", "Volume", MeterCubed.to_base, MeterCubed.from_base),
+        MeterCubed.id: Unit("m^3", "volume", MeterCubed.to_base, MeterCubed.from_base),
+        # Velocity
+        MeterPerSecond.id: Unit(
+            "m/s", "velocity", MeterPerSecond.to_base, MeterPerSecond.from_base
+        ),
+        # Acceleration
+        MeterPerSecondSquared.id: Unit(
+            "m/s^2",
+            "acceleration",
+            MeterPerSecondSquared.to_base,
+            MeterPerSecondSquared.from_base,
+        ),
+        # Force
+        Newton.id: Unit("N", "force", Newton.to_base, Newton.from_base),
+        # Pressure
+        Pascal.id: Unit("Pa", "pressure", Pascal.to_base, Pascal.from_base),
+        # Temperature
+        Kelvin.id: Unit("K", "temperature", Kelvin.to_base, Kelvin.from_base),
     }
 
     def add_unit(self, id: UnitInfo, unit: Unit):
@@ -352,17 +374,50 @@ class Registry:
     # ================================================================
     @property
     def meter_squared(self) -> Unit:
-        """Represents a m^2."""
+        """Represents a `m^2`."""
         return self.units[MeterSquared.id]
 
     @property
     def kilometer_squared(self) -> Unit:
-        """Represents a km^2."""
+        """Represents a `km^2`."""
         return self.units[KilometerSquared.id]
 
     # Volume
     # ================================================================
     @property
     def meter_cubed(self) -> Unit:
-        """Represents a m^3."""
+        """Represents a `m^3`."""
         return self.units[MeterCubed.id]
+
+    # Velocity
+    # ================================================================
+    @property
+    def meter_per_second(self) -> Unit:
+        """Represents a `m/s`."""
+        return self.units[MeterPerSecond.id]
+
+    # Acceleration
+    # ================================================================
+    @property
+    def meter_per_second_squared(self) -> Unit:
+        """Represents a `m/s^2`."""
+        return self.units[MeterPerSecondSquared.id]
+
+    # Force
+    # ================================================================
+    @property
+    def newton(self) -> Unit:
+        """Represents a Newton."""
+        return self.units[Newton.id]
+
+    # Pressure
+    # ================================================================
+    def pascal(self) -> Unit:
+        """Represents a Pascal."""
+        return self.units[Pascal.id]
+
+    # Temperature
+    # ================================================================
+    def kelvin(self) -> Unit:
+        """Represents a Kelvin."""
+        return self.units[Kelvin.id]

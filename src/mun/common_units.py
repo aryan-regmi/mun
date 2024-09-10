@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from typing import override
 
 import mun
-from mun import units
 from mun.units import Unit, UnitOps  # type: ignore
 
 
@@ -271,3 +270,121 @@ class MeterCubed(BaseUnitType):
         mun.registry.meter,
     ]
     ops: list[UnitOps] = [UnitOps.Mul, UnitOps.Mul]
+
+
+# Velocity Units
+# ================================
+
+
+class MeterPerSecond(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter per second",
+        [
+            "m/s",
+            "mps",
+            "metre per second",
+            "metres per second",
+            "meters per second",
+            "Meter Per Second",
+            "Metre Per Second",
+            "Metres Per Second",
+            "Meters Per Second",
+        ],
+    )
+
+    components: list[Unit] = [
+        mun.registry.meter,
+        mun.registry.second,
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]
+
+
+# Acceleration Units
+# ================================
+
+
+class MeterPerSecondSquared(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "meter per second squared",
+        [
+            "m/s^2",
+            "m/s**2",
+            "m/s/s",
+            "metre per second squared",
+            "metres per second squared",
+            "meters per second squared",
+            "Meter Per Second Squared",
+            "Metre Per Second Squared",
+            "Metres Per Second Squared",
+            "Meters Per Second Squared",
+        ],
+    )
+
+    components: list[Unit] = [
+        mun.registry.meter,
+        mun.registry.second,
+        mun.registry.second,
+    ]
+    ops: list[UnitOps] = [UnitOps.Div, UnitOps.Div]
+
+
+# Force Units
+# ================================
+
+
+class Newton(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "newton",
+        [
+            "N",
+            "Newton",
+            "newtons",
+            "Newtons",
+            "kg*m/s^2",
+            "kg*m/s/s",
+            "kg*m/s**2",
+        ],
+    )
+
+    components: list[Unit] = [
+        mun.registry.kilogram,
+        mun.registry.meter_per_second_squared,
+    ]
+    ops: list[UnitOps] = [UnitOps.Mul]
+
+
+# Pressure Units
+# ================================
+class Pascal(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "pascal",
+        [
+            "Pa",
+            "Pascal",
+            "pascals",
+            "Pascals",
+            "N/m^2",
+            "N/m/m",
+            "N/m**2",
+        ],
+    )
+
+    components: list[Unit] = [
+        mun.registry.newton,
+        mun.registry.meter_squared,
+    ]
+    ops: list[UnitOps] = [UnitOps.Div]
+
+
+# Temperature Units
+# ================================
+class Kelvin(BaseUnitType):
+    id: UnitInfo = UnitInfo(
+        "kelvin",
+        [
+            "K",
+            "Kelvin",
+            "kelvins",
+            "Kelvins",
+        ],
+    )
