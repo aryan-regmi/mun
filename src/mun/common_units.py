@@ -5,7 +5,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import override
 
-import mun
+from mun.units import Registry
+
+registry = Registry()
 
 
 class UnitOps(Enum):
@@ -262,7 +264,7 @@ class MeterSquared(BaseUnitType):
         ],
     )
 
-    components: list[Unit] = [mun.registry.meter, mun.registry.meter]
+    components: list[Unit] = [registry.meter, registry.meter]
     ops: list[UnitOps] = [UnitOps.Mul]
 
 
@@ -282,7 +284,7 @@ class KilometerSquared(KiloUnitType):
         ],
     )
 
-    components: list[Unit] = [mun.registry.kilometer, mun.registry.kilometer]
+    components: list[Unit] = [registry.kilometer, registry.kilometer]
     ops: list[UnitOps] = [UnitOps.Mul]
 
 
@@ -307,9 +309,9 @@ class MeterCubed(BaseUnitType):
     )
 
     components: list[Unit] = [
-        mun.registry.meter,
-        mun.registry.meter,
-        mun.registry.meter,
+        registry.meter,
+        registry.meter,
+        registry.meter,
     ]
     ops: list[UnitOps] = [UnitOps.Mul, UnitOps.Mul]
 
@@ -335,8 +337,8 @@ class MeterPerSecond(BaseUnitType):
     )
 
     components: list[Unit] = [
-        mun.registry.meter,
-        mun.registry.second,
+        registry.meter,
+        registry.second,
     ]
     ops: list[UnitOps] = [UnitOps.Div]
 
@@ -363,9 +365,9 @@ class MeterPerSecondSquared(BaseUnitType):
     )
 
     components: list[Unit] = [
-        mun.registry.meter,
-        mun.registry.second,
-        mun.registry.second,
+        registry.meter,
+        registry.second,
+        registry.second,
     ]
     ops: list[UnitOps] = [UnitOps.Div, UnitOps.Div]
 
@@ -389,8 +391,8 @@ class Newton(BaseUnitType):
     )
 
     components: list[Unit] = [
-        mun.registry.kilogram,
-        mun.registry.meter_per_second_squared,
+        registry.kilogram,
+        registry.meter_per_second_squared,
     ]
     ops: list[UnitOps] = [UnitOps.Mul]
 
@@ -412,8 +414,8 @@ class Pascal(BaseUnitType):
     )
 
     components: list[Unit] = [
-        mun.registry.newton,
-        mun.registry.meter_squared,
+        registry.newton,
+        registry.meter_squared,
     ]
     ops: list[UnitOps] = [UnitOps.Div]
 
@@ -448,8 +450,8 @@ class KilogramPerMeterCubed(BaseUnitType):
     )
 
     components: list[Unit] = [
-        mun.registry.kilogram,
-        mun.registry.meter_cubed,
+        registry.kilogram,
+        registry.meter_cubed,
     ]
     ops: list[UnitOps] = [UnitOps.Div]
 
@@ -472,7 +474,7 @@ class MeterSquaredPerSecond(BaseUnitType):
     )
 
     components: list[Unit] = [
-        mun.registry.meter_squared,
-        mun.registry.second,
+        registry.meter_squared,
+        registry.second,
     ]
     ops: list[UnitOps] = [UnitOps.Div]

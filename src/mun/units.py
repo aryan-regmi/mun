@@ -25,6 +25,7 @@ from mun.common_units import (
     UnitInfo,
     UnitOps,
     UnitType,  # noqa: F401
+    registry,  # noqa: F401
 )
 
 
@@ -259,8 +260,7 @@ class Registry:
     A custom unit can be registered using the `add_unit` method.
 
     # Note
-    Only one registry should be used at a time, and `mun` creates and exports a default
-    one in its `__init__.py`; you must import `mun` seperately to use it.
+    Only one registry should be used at a time.
     """
 
     # The registered units
@@ -326,7 +326,7 @@ class Registry:
         import mun
         from mun import UnitInfo, BaseUnitType
 
-        units = mun.registry
+        units = mun.Registry()
 
         class Meter(BaseUnitType):
             id: UnitInfo = UnitInfo(
