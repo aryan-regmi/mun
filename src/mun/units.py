@@ -4,6 +4,9 @@ from enum import Enum
 from typing import Any, Callable
 from mun.common_units import (
     Kilometer,
+    KilometerSquared,
+    MeterCubed,
+    MeterSquared,
     UnitType,
     BaseUnitType,
     Gram,
@@ -262,6 +265,15 @@ class Registry:
         # Mass
         Gram.id: Unit("g", "mass", Gram.to_base, Gram.from_base),
         Kilogram.id: Unit("kg", "mass", Kilogram.to_base, Kilogram.from_base),
+        # Area
+        MeterSquared.id: Unit(
+            "m^2", "area", MeterSquared.to_base, MeterSquared.from_base
+        ),
+        KilometerSquared.id: Unit(
+            "km^2", "area", KilometerSquared.to_base, KilometerSquared.from_base
+        ),
+        # Volume
+        MeterCubed.id: Unit("m^3", "Volume", MeterCubed.to_base, MeterCubed.from_base),
     }
 
     def add_unit(self, id: UnitInfo, unit: Unit):
@@ -335,3 +347,22 @@ class Registry:
     def kilogram(self) -> Unit:
         """Represents a kilogram."""
         return self.units[Kilogram.id]
+
+    # Area
+    # ================================================================
+    @property
+    def meter_squared(self) -> Unit:
+        """Represents a m^2."""
+        return self.units[MeterSquared.id]
+
+    @property
+    def kilometer_squared(self) -> Unit:
+        """Represents a km^2."""
+        return self.units[KilometerSquared.id]
+
+    # Volume
+    # ================================================================
+    @property
+    def meter_cubed(self) -> Unit:
+        """Represents a m^3."""
+        return self.units[MeterCubed.id]
